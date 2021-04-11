@@ -1,0 +1,1 @@
+A generative music project utilizing my ComPoYse library, creating music for electronic or acoustic mallet instruments.
