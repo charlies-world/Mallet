@@ -2,6 +2,7 @@ from compoyse.midi.Note import Note
 from compoyse.midi.Rest import Rest
 from compoyse.midi.Measure import Measure
 from compoyse.midi.Voice import Voice
+from compoyse.midi.Section import Section
 from compoyse.midi.Composition import Composition
 from compoyse.midi.Meter import Meter
 from compoyse.wav.AudioFile import AudioFile
@@ -104,21 +105,6 @@ class Mallet:
         self.voice.add_measure(measure)
         return
     
-class Section:
-    def __init__(self, letter):
-        self.letter = letter
-        return
-    
-    def get_letter(self):
-        return self.letter
-    
-    def set_composition(self, composition):
-        self.composition = composition
-        return
-    
-    def get_composition(self):
-        return self.composition
-    
 def version_one():
     pitch_set = [
                 ['G#', 2],
@@ -177,17 +163,19 @@ def version_two():
     likelihood_of_change = 64
     form = 'ABAB'    
     
+    c = Composition()
+    c.set_quarter_note_bpm(quarter_note_tempo)
+    
     form_sections = []
-    for i in range(0, len(form)):
+    for i in range(0, len(form)): #get unique letters in form
         if not form[i] in form_sections:
-            section = Section(form[i])
-            form_sections.append(section)
+            form_sections.append(form[i])
     
     for j in range(0, len(form_sections)):
-        c = Composition()
-        c.set_quarter_note_bpm(quarter_note_tempo)
-        for m in range(0, len(pitch_set)):
-            mallet_voice = Mallet(pitch_set[m],
+        section = Section()
+        section.set_identifier(form_sections[j])
+        for k in range(0, len(pitch_set)):
+            mallet_voice = Mallet(pitch_set[k],
                 number_of_beats_per_measure,
                 rhythmic_value_for_beat,
                 likelihood_of_change,
@@ -196,12 +184,17 @@ def version_two():
                 minimum_number_of_notes_per_measure,
                 i)
             voice = mallet_voice.compose()
-            c.add_voice(voice)
-        form_sections[j].set_composition(c)
+            section.add_voice(voice)
+        c.add_section(section)
+    print(c.get_current_order_of_sections())
         
-    for n in range(0, len(form_sections)):
-        now = datetime.now()
-        current_time_formatted = now.strftime("%d.%m.%Y %H.%M.%S")
-        form_sections[n].get_composition().write_midi_data('mallet' + ' ' + current_time_formatted + ' ' + form_sections[n].get_letter())
+    c.arrange_sections(form)
+    print(c.get_current_order_of_sections())
+
+    now = datetime.now()
+    current_time_formatted = now.strftime("%d.%m.%Y %H.%M.%S")
+    c.write_midi_data('mallet' + ' ' + current_time_formatted)
     
 version_two()
+
+#add to TODO - tempo changes but new tempo starts with old ones last notes
